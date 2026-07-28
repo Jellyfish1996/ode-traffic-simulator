@@ -1,0 +1,8 @@
+# ODE traffic simulator
+
+# First 3 models have been created, feel free to add the others or modify the existing ones as you please :)
+
+# Models already created include:
+# 1) Constant outflow
+# 2) Linear outflow
+# 3) Congestion model
