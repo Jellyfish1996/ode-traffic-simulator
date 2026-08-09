@@ -9,10 +9,11 @@ L = 1.0
 # Max traffic density
 rho_m = 1.0
 
-# Define turning fractions matrix
+# Define turning fractions matrix. Shape is (n_out, n_in): column j is how
+# inbound road j splits across the outbound roads, so columns sum to 1.
 turning_fractions = np.array([[0.5, 0.5], [0.5, 0.5]])
 
-# Constant arrival rates onto each inbound road
+# Constant arrival rates onto each inbound road. Length n_in.
 arrivals = np.array([0.2, 0.2])
 
 # Greenshields model for traffic flow
@@ -43,15 +44,30 @@ def outflow_system(t: float, fracs: np.ndarray, inflow: np.ndarray, N_outs: np.n
     return fracs @ inflow - B(N_outs)
 
 
+# The whole system, for any n_in and n_out. Both counts come from the shape of
+# fracs. Returns the right-hand side and the state dimension n_in + n_out, with
+# the state laid out as [N_in (n_in), N_out (n_out)].
+def make_whole_system(A: np.ndarray, fracs: np.ndarray, g: Gate):
+    A = np.asarray(A, float)
+    fracs = np.asarray(fracs, float)
+    n_out, n_in = fracs.shape
+    assert A.shape == (n_in,), f"arrivals must have length n_in={n_in}"
+    assert np.allclose(fracs.sum(axis=0), 1.0), "columns of fracs must sum to 1"
+    assert g(0.0).shape == (n_in,), f"gate must return a vector of length n_in={n_in}"
 
-def whole_system(t: float, N: np.ndarray, g: Gate):
-    # Hardcoded to 2 inputs and 2 outputs for now. 
-    N_in, N_outs = N[:2], N[2:]
-    inflow_values = g(t) * B(N_in)
-    
-    inflows = inflows_system(arrivals, N_in, t, g)
-    outflows = outflow_system(t, turning_fractions, inflow_values, N_outs)
-    return np.concatenate([inflows, outflows])
+    def whole_system(t: float, N: np.ndarray):
+        N_in, N_outs = N[:n_in], N[n_in:]
+        inflow_values = g(t) * B(N_in)
 
+        inflows = inflows_system(A, N_in, t, g)
+        outflows = outflow_system(t, fracs, inflow_values, N_outs)
+        return np.concatenate([inflows, outflows])
 
-sol = solve_ivp(whole_system, [0, 10], np.zeros(4), args=(make_gate([1.0, 1.0]),))
+    return whole_system, n_in + n_out
+
+# Numerically solve it.
+# Technically, the inflows system has a closed form, but coding it this way is
+# easier.
+# Default: the n=2 in / n=2 out case discussed in the report.
+rhs, dim = make_whole_system(arrivals, turning_fractions, make_gate([1.0, 1.0]))
+sol = solve_ivp(rhs, [0, 10], np.zeros(dim))
