@@ -20,12 +20,12 @@ def run_simulation_2(initial_vehicles: float, A: float, k: float) :
     return time, vehicles
 
 # run_simulation_2()
-time, vehicles = run_simulation_2(81, 64, 1.5)
+time, vehicles = run_simulation_2(61.7, 470, 5.366)
 
 plt.plot(time, vehicles, 'r-', label="Lane 1")
 plt.xlabel('Time measured in 5 minute increments')
 plt.ylabel('Cars in Lanes')
 plt.legend(loc='best')
-plt.title("How Many Cars Enter and Leave The Lane")
+plt.title("How Many Cars in the Lane")
 plt.tight_layout()
 plt.show()

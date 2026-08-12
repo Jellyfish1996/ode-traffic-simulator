@@ -1,8 +1,5 @@
-# ODE traffic simulator
+ODE traffic simulator
 
-# First 3 models have been created, feel free to add the others or modify the existing ones as you please :)
+This simulator includes five traffic-flow simulations, corresponding to the models described in the project report. Simulation 3 is solved numerically using a numerical ODE method, while the remaining simulations are solved analytically.
 
-# Models already created include:
-# 1) Constant outflow
-# 2) Linear outflow
-# 3) Congestion model
+The simulations are used to run each traffic model against real-world traffic data and compare the predicted results with the observed data."""
