@@ -1,13 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 from typing import Callable
-
-# Free flow velocity
-vf = 1.0
-# Length of road segment
-L = 1.0
-# Max traffic density
-rho_m = 1.0
+from outflow import B
 
 # Define turning fractions matrix. Shape is (n_out, n_in): column j is how
 # inbound road j splits across the outbound roads, so columns sum to 1.
@@ -15,11 +9,6 @@ turning_fractions = np.array([[0.5, 0.5], [0.5, 0.5]])
 
 # Constant arrival rates onto each inbound road. Length n_in.
 arrivals = np.array([0.2, 0.2])
-
-# Greenshields model for traffic flow
-def B(x: float | np.ndarray):
-    return vf * x/L * (1 - x/(L * rho_m))
-
 
 # Gate function. Just pass durations. For the n=2 case discussed in the 
 # report take a T and then just use [T, T].
