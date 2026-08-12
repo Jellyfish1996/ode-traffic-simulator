@@ -5,21 +5,17 @@ import pandas as pd
 
 from load_pems import COLS, vehicles
 
-# Eastbound lower deck of the Richmond-San Rafael bridge, the same span the rest
-# of the report uses. These are the two stations cited in paper.tex; the
-# westbound pair in load_pems.py mirrors them across the same piers.
-#
-# Note the deck has three lanes, not two. Model 4 is a two lane model, so lanes
-# 1 and 2 are fitted and lane 3 is carried alongside for reference only.
+# Eastbound lower deck of the Richmond-San Rafael bridge, the stations cited in
+# the report. The deck has three lanes, so model 4 fits lanes 1 and 2 and
+# carries lane 3 for reference.
 UPSTREAM = 421237
 DOWNSTREAM = 421238
 
-# From the metadata: |73.222 - 71.146|. The report's 5.71 mi is not this pair.
-SEGMENT_MILES = 2.076
+# State_PM as the PeMS site reports it: |7.22 - 1.51|.
+SEGMENT_MILES = 5.71
 
 
-# Same caching trick as the westbound loader: the district file is large and
-# only two stations of it matter.
+# The district file is 150 MB and only two stations of it matter, so cache them.
 def stations_5min(date: str, ids=(UPSTREAM, DOWNSTREAM)):
     cache = f"pems_eb_{date}_stations.csv"
     try:
@@ -47,14 +43,12 @@ def load_segment(date: str, start: str = "15:00", end: str = "18:00"):
         "A_2": up.l2_flow,
         "N_1": vehicles(down.l1_flow, down.l1_speed, L),
         "N_2": vehicles(down.l2_flow, down.l2_speed, L),
-        # Lane 3 is not part of the two lane model, only reported.
         "A_3": up.l3_flow,
         "N_3": vehicles(down.l3_flow, down.l3_speed, L),
     })
 
     # PeMS writes feed outages as exact zeros, which read as the road emptying
-    # and refilling inside one time step. A zero flow sample also leaves the
-    # speed undefined, so N is meaningless there.
+    # and refilling inside one time step, and leave N undefined.
     dead = ((up.l1_flow == 0) | (up.l2_flow == 0) |
             (down.l1_flow == 0) | (down.l2_flow == 0) |
             (down.l1_speed == 0) | (down.l2_speed == 0))
